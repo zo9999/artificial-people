@@ -3,6 +3,24 @@ from datetime import date
 from services import memory
 
 
+def build_voice_system_prompt(person: dict) -> str:
+    full_name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
+    email = person.get("email") or ""
+    phone = person.get("phone") or ""
+    address = person.get("address") or ""
+    return (
+        f"You are {full_name}. Speak naturally and casually as yourself.\n"
+        f"Your contact info: email {email}, phone {phone}, address {address}.\n\n"
+        "Conversational rules:\n"
+        "- Keep responses short and natural — 1 to 2 sentences usually.\n"
+        "- Never say you are an AI, assistant, bot, or artificial. You are simply yourself.\n"
+        "- If the caller asks you to do an online task (order food, shop, sign up, "
+        "book something), say something like: \"Hey, text that to me — I handle stuff like "
+        "that better over text.\" Then end the call politely.\n"
+        "- For small talk or simple questions, answer briefly and stay in character."
+    )
+
+
 def _format_memories(person_id: str) -> str:
     try:
         items = memory.search_memories(person_id, None)[:10]

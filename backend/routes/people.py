@@ -5,7 +5,7 @@ import requests
 
 from config import PUBLIC_WEBHOOK_BASE, AGENTPHONE_WEBHOOK_SECRET
 from services.supabase_client import supabase
-from services import agentmail, agentphone, sponge, face, memory
+from services import agentmail, agentphone, sponge, face, memory, persona
 
 log = logging.getLogger("people")
 
@@ -141,9 +141,20 @@ def create_person():
     except Exception as e:
         return _fail("agentmail", e)
 
+    voice_prompt = persona.build_voice_system_prompt(
+        {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": inbox["email"],
+            "phone": "",
+            "address": address,
+        }
+    )
     try:
-        log.info("→ agentphone.create_agent")
-        ap_agent = agentphone.create_agent(f"{first_name} {last_name}")
+        log.info("→ agentphone.create_agent (hosted voice)")
+        ap_agent = agentphone.create_agent(
+            f"{first_name} {last_name}", system_prompt=voice_prompt
+        )
         log.info("← agentphone_agent id=%s", ap_agent.get("id"))
         if ap_agent.get("id"):
             rollbacks.append(("agentphone_agent", lambda: agentphone.delete_agent(ap_agent["id"])))
@@ -299,11 +310,25 @@ def repair_agentphone(person_id):
     if not p.get("agentphone_number_id"):
         return jsonify({"error": "missing agentphone_number_id"}), 400
 
+    # Pull the full person so we can build a voice system prompt
+    full = (
+        sb.table("people")
+        .select(PUBLIC_FIELDS)
+        .eq("owner_id", owner_id)
+        .eq("id", person_id)
+        .limit(1)
+        .execute()
+    )
+    full_row = (full.data or [{}])[0]
+    voice_prompt = persona.build_voice_system_prompt(full_row)
+
     agent_id = p.get("agentphone_agent_id")
     created_new = False
     if not agent_id:
         try:
-            ap_agent = agentphone.create_agent(f"{p['first_name']} {p['last_name']}")
+            ap_agent = agentphone.create_agent(
+                f"{p['first_name']} {p['last_name']}", system_prompt=voice_prompt
+            )
             agent_id = ap_agent["id"]
             created_new = True
         except Exception as e:
@@ -319,6 +344,17 @@ def repair_agentphone(person_id):
             return _service_error("agentphone", e)
 
         sb.table("people").update({"agentphone_agent_id": agent_id}).eq("id", person_id).execute()
+    else:
+        # Existing agent — push the latest voice prompt + hosted mode in case it drifted
+        try:
+            agentphone.update_agent(
+                agent_id,
+                voiceMode="hosted",
+                systemPrompt=voice_prompt,
+                messagingTools=True,
+            )
+        except Exception:
+            log.exception("update_agent failed (continuing)")
 
     webhook_url = _build_webhook_url(agent_id)
     webhook_set = False

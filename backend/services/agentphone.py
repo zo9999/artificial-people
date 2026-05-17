@@ -14,15 +14,27 @@ _HEADERS = {
 
 def create_agent(name: str, system_prompt: str = "") -> dict:
     url = f"{AGENTPHONE_BASE_URL}/v1/agents"
-    payload = {"name": name, "mode": "webhook"}
+    payload = {
+        "name": name,
+        "voiceMode": "hosted",
+        "messagingTools": True,
+    }
     if system_prompt:
         payload["systemPrompt"] = system_prompt
-    log.info("POST %s name=%s", url, name)
+    log.info("POST %s name=%s voiceMode=hosted", url, name)
     r = requests.post(url, headers=_HEADERS, json=payload, timeout=30)
     log.info("← %s %s", r.status_code, r.text[:300])
     r.raise_for_status()
     data = r.json()
     return {"id": data.get("id") or data.get("agent_id") or data.get("agentId")}
+
+
+def update_agent(agent_id: str, **fields) -> None:
+    url = f"{AGENTPHONE_BASE_URL}/v1/agents/{agent_id}"
+    log.info("PATCH %s fields=%s", url, list(fields.keys()))
+    r = requests.patch(url, headers=_HEADERS, json=fields, timeout=30)
+    log.info("← %s %s", r.status_code, r.text[:200])
+    r.raise_for_status()
 
 
 def delete_agent(agent_id: str) -> None:
