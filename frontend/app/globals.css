@@ -234,6 +234,92 @@ button { font: inherit; cursor: pointer; }
 
 .loading { color: var(--muted); padding: 24px; }
 
+.memory-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+}
+.memory-input:focus { border-color: var(--green-dark); }
+
+.memory-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+}
+.memory-meta { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+.sms-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.sms-bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+.sms-in {
+  background: #f3f3f3;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.sms-out {
+  background: var(--green-dark);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.sms-meta { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; }
+
+.live-frame-wrap { display: flex; flex-direction: column; gap: 8px; }
+.live-meta { display: flex; align-items: center; gap: 10px; }
+.live-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #000;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pill-running { background: #fff4cf; color: #7a5a00; }
+.pill-succeeded { background: #e1f1d8; color: var(--green-dark); }
+.pill-failed { background: #fdecec; color: #8a1c1c; }
+
+.run-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.run-top { display: flex; align-items: center; gap: 10px; }
+.run-time { font-size: 0.78rem; color: var(--muted); }
+.run-trigger { font-size: 0.88rem; color: var(--text); font-style: italic; }
+.run-result { font-size: 0.88rem; color: var(--text); white-space: pre-wrap; }
+.run-link { color: var(--green-dark); font-size: 0.85rem; font-weight: 600; }
+
 @media (max-width: 720px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; align-items: center; padding: 12px 16px; }

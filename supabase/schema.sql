@@ -13,6 +13,7 @@ create table if not exists people (
   agentmail_inbox_id text,
   phone text,
   agentphone_number_id text,
+  agentphone_agent_id text,
   sponge_agent_id text,
   sponge_wallet_address text,
   sponge_api_key text,
@@ -33,3 +34,18 @@ create table if not exists memories (
 );
 
 create index if not exists memories_person_idx on memories (person_id, created_at desc);
+
+create table if not exists agent_runs (
+  id uuid primary key default gen_random_uuid(),
+  owner_id text not null,
+  person_id uuid not null references people(id) on delete cascade,
+  trigger_text text,
+  bu_session_id text,
+  bu_live_url text,
+  status text not null default 'running',
+  result text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists agent_runs_owner_person_idx on agent_runs (owner_id, person_id, created_at desc);
+create index if not exists agent_runs_status_idx on agent_runs (status);

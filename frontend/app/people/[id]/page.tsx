@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { getPerson, Person } from "@/lib/api";
+import { getPerson, regenerateFace, repairAgentphone, Person } from "@/lib/api";
+import EditPersonModal from "@/components/EditPersonModal";
+import Memories from "@/components/Memories";
+import SmsThread from "@/components/SmsThread";
+import RunLive from "@/components/RunLive";
+import RunHistory from "@/components/RunHistory";
+import { listRuns, AgentRun } from "@/lib/api";
 
 export default function PersonDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +18,68 @@ export default function PersonDetailPage() {
   const [person, setPerson] = useState<Person | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [runs, setRuns] = useState<AgentRun[]>([]);
+  const [repairing, setRepairing] = useState(false);
+
+  async function handleRepairAgentphone() {
+    if (!user || !id || !person) return;
+    setRepairing(true);
+    setError(null);
+    try {
+      const res = await repairAgentphone(user.id, id as string);
+      if (res.agent_id) {
+        setPerson({ ...person, agentphone_agent_id: res.agent_id });
+      }
+      if (!res.webhook_set) {
+        setError(
+          res.webhook_url
+            ? "Agent ready, but webhook setup failed — check backend logs."
+            : "PUBLIC_WEBHOOK_BASE is not set on the backend; SMS won’t trigger runs until it is.",
+        );
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Repair failed");
+    } finally {
+      setRepairing(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!user || !id) return;
+    let cancelled = false;
+    async function tick() {
+      try {
+        const r = await listRuns(user!.id, id as string);
+        if (!cancelled) setRuns(r);
+      } catch {
+        // ignore polling errors
+      }
+    }
+    tick();
+    const t = setInterval(tick, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [user, id]);
+
+  const activeRun = runs.find((r) => r.status === "running") || null;
+
+  async function handleRegenerate() {
+    if (!user || !id) return;
+    setRegenerating(true);
+    setError(null);
+    try {
+      const updated = await regenerateFace(user.id, id);
+      setPerson(updated);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Regenerate failed");
+    } finally {
+      setRegenerating(false);
+    }
+  }
 
   useEffect(() => {
     if (!isLoaded || !user || !id) return;
@@ -36,6 +104,30 @@ export default function PersonDetailPage() {
         <Link href="/" className="btn btn-ghost">
           ← Back
         </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn btn-ghost"
+            onClick={handleRepairAgentphone}
+            disabled={repairing}
+            title="Re-register the AgentPhone webhook so inbound SMS triggers runs"
+          >
+            {repairing
+              ? "Repairing…"
+              : person.agentphone_agent_id
+                ? "Re-register webhook"
+                : "Repair AgentPhone"}
+          </button>
+          <button className="btn btn-ghost" onClick={() => setEditOpen(true)}>
+            Edit
+          </button>
+          <button
+            className="btn btn-gold"
+            onClick={handleRegenerate}
+            disabled={regenerating}
+          >
+            {regenerating ? "Regenerating…" : "Regenerate face"}
+          </button>
+        </div>
       </div>
 
       <div className="detail">
@@ -80,10 +172,10 @@ export default function PersonDetailPage() {
           <div className="section">
             <h3>Services</h3>
             <dl className="kv">
-              <dt>AgentMail inbox</dt>
-              <dd>{person.agentmail_inbox_id || "—"}</dd>
-              <dt>AgentPhone number ID</dt>
-              <dd>{person.agentphone_number_id || "—"}</dd>
+              <dt>AgentMail</dt>
+              <dd>{person.email || "—"}</dd>
+              <dt>AgentPhone</dt>
+              <dd>{person.phone || "—"}</dd>
             </dl>
           </div>
 
@@ -93,8 +185,25 @@ export default function PersonDetailPage() {
               {person.face_prompt || "—"}
             </p>
           </div>
+
+          {user && <SmsThread ownerId={user.id} personId={person.id} />}
+          <RunLive run={activeRun} />
+          <RunHistory runs={runs} />
+          {user && <Memories ownerId={user.id} personId={person.id} />}
         </div>
       </div>
+
+      {editOpen && user && (
+        <EditPersonModal
+          ownerId={user.id}
+          person={person}
+          onClose={() => setEditOpen(false)}
+          onSaved={(p) => {
+            setPerson(p);
+            setEditOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

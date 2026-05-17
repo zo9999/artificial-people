@@ -1,12 +1,13 @@
-import base64
+import logging
 import uuid
 
-from google import genai
+import fal_client
+import requests
 
-from config import GEMINI_API_KEY, GEMINI_IMAGE_MODEL, SUPABASE_FACES_BUCKET
+from config import FAL_IMAGE_MODEL, SUPABASE_FACES_BUCKET
 from services.supabase_client import supabase
 
-_client = genai.Client(api_key=GEMINI_API_KEY)
+log = logging.getLogger("face")
 
 _PORTRAIT_TEMPLATE = (
     "Photorealistic studio headshot portrait, neutral light gray background, "
@@ -15,25 +16,26 @@ _PORTRAIT_TEMPLATE = (
 )
 
 
-def _extract_image_bytes(response) -> bytes:
-    images = getattr(response, "generated_images", None)
-    if not images:
-        raise RuntimeError("Gemini returned no images")
-    image_obj = images[0].image
-    data = getattr(image_obj, "image_bytes", None)
-    if data:
-        return data if isinstance(data, bytes) else base64.b64decode(data)
-    raise RuntimeError("Gemini image missing bytes")
-
-
 def generate_and_upload_face(prompt: str, owner_id: str) -> tuple[str, str]:
     full_prompt = _PORTRAIT_TEMPLATE.format(prompt=prompt.strip())
-    response = _client.models.generate_images(
-        model=GEMINI_IMAGE_MODEL,
-        prompt=full_prompt,
-        config={"number_of_images": 1, "aspect_ratio": "1:1"},
+    log.info("generating face model=%s", FAL_IMAGE_MODEL)
+
+    result = fal_client.subscribe(
+        FAL_IMAGE_MODEL,
+        arguments={
+            "prompt": full_prompt,
+            "image_size": "square_hd",
+            "num_images": 1,
+        },
     )
-    img_bytes = _extract_image_bytes(response)
+    images = result.get("images") or []
+    if not images:
+        raise RuntimeError("fal returned no images")
+    src_url = images[0].get("url")
+    if not src_url:
+        raise RuntimeError("fal image missing url")
+
+    img_bytes = requests.get(src_url, timeout=30).content
 
     path = f"{owner_id}/{uuid.uuid4()}.png"
     sb = supabase()
@@ -43,4 +45,5 @@ def generate_and_upload_face(prompt: str, owner_id: str) -> tuple[str, str]:
         file_options={"content-type": "image/png", "upsert": "false"},
     )
     public_url = sb.storage.from_(SUPABASE_FACES_BUCKET).get_public_url(path)
+    log.info("uploaded face to %s", public_url)
     return public_url, full_prompt
