@@ -1,0 +1,14 @@
+# Local env / secret bootstrap
+env_script.sh
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
