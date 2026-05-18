@@ -38,7 +38,7 @@ export default function PeoplePage() {
         <h1>People</h1>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn btn-gold" onClick={() => setWallOpen(true)}>
-            🎬 UGC Wall
+            🎬 Wall
           </button>
           <button className="btn" onClick={() => setModalOpen(true)}>
             + New Person

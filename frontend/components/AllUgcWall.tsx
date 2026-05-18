@@ -27,28 +27,34 @@ export default function AllUgcWall({
     return () => clearInterval(t);
   }, [refresh]);
 
+  const playable = items.filter((v) => v?.video_url);
+  // Duplicate the list so the marquee can loop seamlessly
+  const loop = playable.length > 0 ? [...playable, ...playable] : [];
+
   return (
     <div className="wall">
       <button className="wall-close" onClick={onClose} aria-label="Close">✕</button>
       {error && <div className="wall-error">{error}</div>}
-      <div className="wall-grid">
-        {Array.from({ length: 16 }).map((_, i) => {
-          const v = items[i];
-          return (
-            <div key={v?.id || `slot-${i}`} className="wall-cell">
-              {v?.video_url && (
-                <video
-                  src={v.video_url}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="auto"
-                />
-              )}
+      <div className="wall-carousel">
+        <div
+          className="wall-track"
+          style={{
+            animationDuration: `${Math.max(20, playable.length * 6)}s`,
+          }}
+        >
+          {loop.map((v, i) => (
+            <div key={`${v.id}-${i}`} className="wall-cell">
+              <video
+                src={v.video_url!}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+              />
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
     </div>
   );
