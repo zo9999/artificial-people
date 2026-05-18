@@ -161,7 +161,11 @@ export default function PersonDetailPage() {
           </div>
 
           <div className="section">
-            <h3>Bank / Wallet (Sponge)</h3>
+            <h3>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://logo.clearbit.com/paysponge.com" alt="" className="brand-logo" />
+              Bank / Wallet (Sponge)
+            </h3>
             <dl className="kv">
               <dt>Agent ID</dt>
               <dd>{person.sponge_agent_id || "—"}</dd>
@@ -173,9 +177,17 @@ export default function PersonDetailPage() {
           <div className="section">
             <h3>Services</h3>
             <dl className="kv">
-              <dt>AgentMail</dt>
+              <dt>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://logo.clearbit.com/agentmail.to" alt="" className="brand-logo" />
+                AgentMail
+              </dt>
               <dd>{person.email || "—"}</dd>
-              <dt>AgentPhone</dt>
+              <dt>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://logo.clearbit.com/agentphone.ai" alt="" className="brand-logo" />
+                AgentPhone
+              </dt>
               <dd>{person.phone || "—"}</dd>
             </dl>
           </div>

@@ -55,7 +55,15 @@ export default function Memories({
 
   return (
     <div className="section">
-      <h3>Memories</h3>
+      <h3>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://logo.clearbit.com/supermemory.ai"
+          alt=""
+          className="brand-logo"
+        />
+        Memories
+      </h3>
       {error && <div className="error">{error}</div>}
 
       <form onSubmit={handleAdd} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
