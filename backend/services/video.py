@@ -4,10 +4,12 @@ import uuid
 import fal_client
 import requests
 
-from config import FAL_VIDEO_MODEL, SUPABASE_VIDEOS_BUCKET
+from config import SUPABASE_VIDEOS_BUCKET
 from services.supabase_client import supabase
 
 log = logging.getLogger("video")
+
+FAL_VIDEO_MODEL = "bytedance/seedance-2.0/image-to-video"
 
 
 def _generate(prompt: str, image_url: str, duration: int = 5) -> bytes:
