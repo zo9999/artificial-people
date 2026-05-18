@@ -108,6 +108,14 @@ def send_message(from_number: str, to_number: str, body: str) -> dict:
     return r.json() if r.text else {}
 
 
+def _first(d: dict, *keys):
+    for k in keys:
+        v = d.get(k)
+        if v not in (None, ""):
+            return v
+    return None
+
+
 def list_messages_for_number_id(number_id: str, ap_phone: str, limit: int = 100) -> list[dict]:
     """Fetch SMS for the AgentPhone number identified by `number_id`."""
     url = f"{AGENTPHONE_BASE_URL}/v1/numbers/{number_id}/messages"
@@ -116,24 +124,36 @@ def list_messages_for_number_id(number_id: str, ap_phone: str, limit: int = 100)
     log.info("← %s", r.status_code)
     r.raise_for_status()
     data = r.json()
-    items = data if isinstance(data, list) else (data.get("messages") or data.get("data") or [])
+    items = data if isinstance(data, list) else (
+        data.get("messages") or data.get("data") or data.get("results") or []
+    )
+    if items:
+        log.info("sample message keys=%s", sorted(list(items[0].keys()))[:30])
     out = []
     for m in items:
-        to_n = m.get("to") or m.get("toNumber") or m.get("to_number")
-        from_n = m.get("from") or m.get("fromNumber") or m.get("from_number")
-        direction = (m.get("direction") or "").lower()
-        if direction not in ("in", "inbound", "out", "outbound"):
-            direction = "in" if to_n == ap_phone else "out"
+        to_n = _first(m, "to", "toNumber", "to_number", "toE164", "to_e164", "recipient")
+        from_n = _first(
+            m, "from", "fromNumber", "from_number", "fromE164", "from_e164",
+            "sender", "senderNumber", "sender_number", "author",
+        )
+        direction = (m.get("direction") or m.get("type") or "").lower()
+        if direction.startswith("in") or direction == "received":
+            direction = "in"
+        elif direction.startswith("out") or direction == "sent":
+            direction = "out"
         else:
-            direction = "in" if direction.startswith("in") else "out"
+            direction = "in" if to_n == ap_phone else "out"
         out.append(
             {
-                "id": m.get("id") or m.get("messageId"),
+                "id": _first(m, "id", "messageId", "message_id"),
                 "from": from_n,
                 "to": to_n,
-                "body": m.get("text") or m.get("body") or m.get("content") or "",
+                "body": _first(m, "text", "body", "content", "message") or "",
                 "direction": direction,
-                "created_at": m.get("createdAt") or m.get("created_at") or m.get("timestamp"),
+                "created_at": _first(
+                    m, "createdAt", "created_at", "timestamp",
+                    "sentAt", "sent_at", "receivedAt", "received_at", "time",
+                ),
             }
         )
     out.sort(key=lambda x: x.get("created_at") or "")

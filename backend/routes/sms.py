@@ -1,5 +1,6 @@
 import logging
 import re
+from datetime import datetime, timezone
 
 from flask import Blueprint, Response, jsonify, request
 
@@ -83,14 +84,32 @@ def latest_inbox(name):
     lines = [f"Inbox for {phone}", "=" * 40, ""]
     if not inbound:
         lines.append("(no inbound messages)")
-    for m in inbound:
-        ts = m.get("created_at") or ""
-        sender = m.get("from") or "?"
-        body = m.get("body") or ""
+    for i, m in enumerate(inbound):
+        when = _format_time(m.get("created_at"))
+        sender = m.get("from") or "(unknown)"
+        body = (m.get("body") or "").strip()
         codes = _CODE_RE.findall(body)
-        lines.append(f"FROM {sender}  AT {ts}")
+        marker = "   <<< MOST RECENT — USE THIS ONE" if i == 0 else ""
+        lines.append(f"[{when}] from {sender}{marker}")
         if codes:
-            lines.append("LIKELY CODE(S): " + ", ".join(codes))
-        lines.append(body)
-        lines.append("-" * 40)
+            lines.append("LIKELY CODE: " + ", ".join(codes))
+        if body:
+            lines.append(body)
+        lines.append("")
     return Response("\n".join(lines), status=200, mimetype="text/plain")
+
+
+def _format_time(value) -> str:
+    if not value:
+        return "unknown time"
+    if isinstance(value, (int, float)):
+        ts = value / 1000 if value > 10_000_000_000 else value
+        try:
+            return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        except Exception:
+            return str(value)
+    s = str(value).replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(s).strftime("%Y-%m-%d %H:%M UTC")
+    except Exception:
+        return str(value)
