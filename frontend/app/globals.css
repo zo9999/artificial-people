@@ -320,6 +320,32 @@ button { font: inherit; cursor: pointer; }
 .run-result { font-size: 0.88rem; color: var(--text); white-space: pre-wrap; }
 .run-link { color: var(--green-dark); font-size: 0.85rem; font-weight: 600; }
 
+.run-videos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.run-video {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.run-video video {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #000;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.run-video-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 @media (max-width: 720px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; align-items: center; padding: 12px 16px; }

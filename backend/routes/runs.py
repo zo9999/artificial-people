@@ -4,7 +4,10 @@ from services.supabase_client import supabase
 
 bp = Blueprint("runs", __name__)
 
-RUN_FIELDS = "id, owner_id, person_id, trigger_text, bu_session_id, bu_live_url, status, result, created_at"
+RUN_FIELDS = (
+    "id, owner_id, person_id, trigger_text, bu_session_id, bu_live_url, status, result, "
+    "intro_video_url, outro_video_url, created_at"
+)
 
 
 def _require_owner_id(value):

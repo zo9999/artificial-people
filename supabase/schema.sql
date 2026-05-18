@@ -44,6 +44,8 @@ create table if not exists agent_runs (
   bu_live_url text,
   status text not null default 'running',
   result text,
+  intro_video_url text,
+  outro_video_url text,
   created_at timestamptz not null default now()
 );
 

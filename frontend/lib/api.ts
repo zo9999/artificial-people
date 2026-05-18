@@ -65,6 +65,8 @@ export type AgentRun = {
   bu_live_url: string | null;
   status: "running" | "succeeded" | "failed";
   result: string | null;
+  intro_video_url: string | null;
+  outro_video_url: string | null;
   created_at: string;
 };
 

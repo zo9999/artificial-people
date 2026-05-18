@@ -4,7 +4,7 @@ import time
 
 from config import DEFAULT_SPEND_CAP_CENTS
 from services.supabase_client import supabase
-from services import agentphone, browser_use, sponge, persona, voice_agent
+from services import agentphone, browser_use, sponge, persona, voice_agent, video
 
 log = logging.getLogger("runner")
 
@@ -63,11 +63,17 @@ def _watch(run_id: str, person: dict, session_id: str, task_id: str | None) -> N
             break
 
     succeeded = final_status in {"finished", "completed", "succeeded", "success"}
+    final_text = final_result or final_status or "timed out"
     _update_run(
         run_id,
         status="succeeded" if succeeded else "failed",
-        result=final_result or final_status or "timed out",
+        result=final_text,
     )
+
+    # Outro video runs in its own thread so it doesn't delay the SMS reply
+    threading.Thread(
+        target=_generate_outro_async, args=(person, run_id, final_text), daemon=True
+    ).start()
 
     if person.get("phone") and final_result:
         try:
@@ -88,6 +94,22 @@ def _watch(run_id: str, person: dict, session_id: str, task_id: str | None) -> N
         browser_use.stop_session(session_id)
     except Exception:
         log.exception("stop_session failed")
+
+
+def _generate_intro_async(person: dict, run_id: str, sms_body: str) -> None:
+    try:
+        url = video.generate_intro(person, run_id, sms_body)
+        _update_run(run_id, intro_video_url=url)
+    except Exception:
+        log.exception("intro video generation failed")
+
+
+def _generate_outro_async(person: dict, run_id: str, result_text: str) -> None:
+    try:
+        url = video.generate_outro(person, run_id, result_text)
+        _update_run(run_id, outro_video_url=url)
+    except Exception:
+        log.exception("outro video generation failed")
 
 
 def start_run(person: dict, sms_body: str, reply_to: str | None) -> dict:
@@ -139,6 +161,12 @@ def start_run(person: dict, sms_body: str, reply_to: str | None) -> dict:
     _update_run(run_id, bu_session_id=session_id, bu_live_url=live_url)
 
     person_ctx = {**person, "_reply_to": reply_to}
+
+    # Generate the intro video in parallel — don't block the browser-use kickoff
+    threading.Thread(
+        target=_generate_intro_async, args=(person, run_id, sms_body), daemon=True
+    ).start()
+
     if session_id:
         threading.Thread(
             target=_watch,

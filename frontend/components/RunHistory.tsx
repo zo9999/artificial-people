@@ -19,6 +19,22 @@ export default function RunHistory({ runs }: { runs: AgentRun[] }) {
                 </span>
               </div>
               {r.trigger_text && <div className="run-trigger">“{r.trigger_text}”</div>}
+              {(r.intro_video_url || r.outro_video_url) && (
+                <div className="run-videos">
+                  {r.intro_video_url && (
+                    <div className="run-video">
+                      <div className="run-video-label">Intro</div>
+                      <video src={r.intro_video_url} controls preload="metadata" />
+                    </div>
+                  )}
+                  {r.outro_video_url && (
+                    <div className="run-video">
+                      <div className="run-video-label">Outro</div>
+                      <video src={r.outro_video_url} controls preload="metadata" />
+                    </div>
+                  )}
+                </div>
+              )}
               {r.result && <div className="run-result">{r.result}</div>}
               {r.bu_live_url && r.status === "running" && (
                 <a className="run-link" href={r.bu_live_url} target="_blank" rel="noreferrer">
