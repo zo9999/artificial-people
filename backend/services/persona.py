@@ -82,6 +82,12 @@ def build_prompt(person: dict, sms_body: str, card: dict, spend_cap_dollars: int
         f"  spending cap: ${spend_cap_dollars}. DO NOT exceed it.\n"
     )
 
+    creds = (person.get("credentials_text") or "").strip()
+    creds_block = (
+        "\nSTORED CREDENTIALS / NOTES (use as needed, treat as sensitive):\n"
+        f"{creds}\n"
+    ) if creds else ""
+
     return (
         f"You are {full_name}, an artificial person. Today is {today}.\n\n"
         "IDENTITY:\n"
@@ -92,7 +98,8 @@ def build_prompt(person: dict, sms_body: str, card: dict, spend_cap_dollars: int
         "EMAIL VERIFICATION:\n"
         "  If a site sends you an email verification code or magic link, sign in to your\n"
         f"  AgentMail inbox at https://app.agentmail.to/ as {email} and retrieve the latest message.\n\n"
-        f"{card_block}\n"
+        f"{card_block}"
+        f"{creds_block}\n"
         "RECENT MEMORIES (use only if relevant):\n"
         f"{_format_memories(person.get('id'))}\n\n"
         "USER REQUEST (received via SMS):\n"

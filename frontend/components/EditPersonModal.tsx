@@ -18,6 +18,7 @@ export default function EditPersonModal({
   const [lastName, setLastName] = useState(person.last_name);
   const [address, setAddress] = useState(person.address);
   const [facePrompt, setFacePrompt] = useState(person.face_prompt || "");
+  const [credentials, setCredentials] = useState(person.credentials_text || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +32,7 @@ export default function EditPersonModal({
         last_name: lastName,
         address,
         face_prompt: facePrompt,
+        credentials_text: credentials,
       });
       onSaved(updated);
     } catch (e: unknown) {
@@ -62,6 +64,15 @@ export default function EditPersonModal({
             value={facePrompt}
             onChange={(e) => setFacePrompt(e.target.value)}
             placeholder="Used the next time you regenerate the face."
+          />
+        </div>
+        <div className="field">
+          <label>Credentials &amp; notes</label>
+          <textarea
+            value={credentials}
+            onChange={(e) => setCredentials(e.target.value)}
+            placeholder="Free-form. Anything the browser agent should know. e.g. 'DoorDash password: simplewater', 'Costco member id: 12345'."
+            style={{ minHeight: 120, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: "0.85rem" }}
           />
         </div>
         <div className="modal-actions">

@@ -14,7 +14,8 @@ bp = Blueprint("people", __name__, url_prefix="/api/people")
 PUBLIC_FIELDS = (
     "id, owner_id, first_name, last_name, address, email, phone, "
     "agentmail_inbox_id, agentphone_number_id, agentphone_agent_id, "
-    "sponge_agent_id, sponge_wallet_address, face_url, face_prompt, created_at"
+    "sponge_agent_id, sponge_wallet_address, face_url, face_prompt, "
+    "credentials_text, created_at"
 )
 
 
@@ -233,8 +234,12 @@ def update_person(person_id):
     if err:
         return err
 
-    editable = ("first_name", "last_name", "address", "face_prompt")
-    updates = {f: body[f].strip() for f in editable if isinstance(body.get(f), str) and body[f].strip()}
+    editable = ("first_name", "last_name", "address", "face_prompt", "credentials_text")
+    updates = {}
+    for f in editable:
+        v = body.get(f)
+        if isinstance(v, str):
+            updates[f] = v.strip() or None
     if not updates:
         return jsonify({"error": "no editable fields provided"}), 400
 

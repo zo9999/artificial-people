@@ -19,6 +19,7 @@ create table if not exists people (
   sponge_api_key text,
   face_url text,
   face_prompt text,
+  credentials_text text,
   created_at timestamptz not null default now()
 );
 

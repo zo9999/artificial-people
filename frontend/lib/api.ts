@@ -15,6 +15,7 @@ export type Person = {
   sponge_wallet_address: string | null;
   face_url: string | null;
   face_prompt: string | null;
+  credentials_text: string | null;
   created_at: string;
 };
 
@@ -131,7 +132,9 @@ export async function addMemory(
 export async function updatePerson(
   ownerId: string,
   id: string,
-  patch: Partial<Pick<Person, "first_name" | "last_name" | "address" | "face_prompt">>,
+  patch: Partial<
+    Pick<Person, "first_name" | "last_name" | "address" | "face_prompt" | "credentials_text">
+  >,
 ): Promise<Person> {
   const r = await fetch(`${BASE}/api/people/${encodeURIComponent(id)}`, {
     method: "PATCH",
