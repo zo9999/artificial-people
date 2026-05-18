@@ -19,7 +19,7 @@ function VideoCell({ url, label }: { url: string | null; label: string }) {
 }
 
 export default function RunLive({ run }: { run: AgentRun | null }) {
-  const [fullscreen, setFullscreen] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
 
   if (!run) {
     return (
@@ -46,7 +46,7 @@ export default function RunLive({ run }: { run: AgentRun | null }) {
           onClick={() => setFullscreen((v) => !v)}
           style={{ padding: "6px 12px", fontSize: "0.8rem" }}
         >
-          {fullscreen ? "Exit fullscreen" : "Fullscreen"}
+          {fullscreen ? "✕ Collapse" : "⤢ Expand"}
         </button>
       </div>
       <div className="active-run">
