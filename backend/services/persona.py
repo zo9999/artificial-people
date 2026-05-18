@@ -1,5 +1,6 @@
 from datetime import date
 
+from config import PUBLIC_WEBHOOK_BASE
 from services import memory
 
 
@@ -88,6 +89,17 @@ def build_prompt(person: dict, sms_body: str, card: dict, spend_cap_dollars: int
         f"{creds}\n"
     ) if creds else ""
 
+    inbox_url = (
+        f"{PUBLIC_WEBHOOK_BASE}/api/inbox/{person.get('id')}/latest"
+        if PUBLIC_WEBHOOK_BASE and person.get("id") else ""
+    )
+    inbox_block = (
+        "\nSMS INBOX (for 2FA / verification codes texted to your phone):\n"
+        f"  Open {inbox_url} in the browser to view your latest inbound SMS messages\n"
+        "  as plain text. Re-load the page to see new messages. Any short 4–8 digit\n"
+        "  code in a recent message is almost certainly the 2FA code you need.\n"
+    ) if inbox_url else ""
+
     return (
         f"You are {full_name}, an artificial person. Today is {today}.\n\n"
         "IDENTITY:\n"
@@ -99,7 +111,8 @@ def build_prompt(person: dict, sms_body: str, card: dict, spend_cap_dollars: int
         "  If a site sends you an email verification code or magic link, sign in to your\n"
         f"  AgentMail inbox at https://app.agentmail.to/ as {email} and retrieve the latest message.\n\n"
         f"{card_block}"
-        f"{creds_block}\n"
+        f"{creds_block}"
+        f"{inbox_block}\n"
         "RECENT MEMORIES (use only if relevant):\n"
         f"{_format_memories(person.get('id'))}\n\n"
         "USER REQUEST (received via SMS):\n"
