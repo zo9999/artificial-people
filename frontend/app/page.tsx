@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import PersonCard from "@/components/PersonCard";
 import NewPersonModal from "@/components/NewPersonModal";
+import AllUgcWall from "@/components/AllUgcWall";
 import { listPeople, Person } from "@/lib/api";
 
 export default function PeoplePage() {
@@ -12,6 +13,7 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [wallOpen, setWallOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -34,9 +36,14 @@ export default function PeoplePage() {
     <>
       <div className="page-header">
         <h1>People</h1>
-        <button className="btn" onClick={() => setModalOpen(true)}>
-          + New Person
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-gold" onClick={() => setWallOpen(true)}>
+            🎬 UGC Wall
+          </button>
+          <button className="btn" onClick={() => setModalOpen(true)}>
+            + New Person
+          </button>
+        </div>
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -64,6 +71,10 @@ export default function PeoplePage() {
             refresh();
           }}
         />
+      )}
+
+      {wallOpen && user && (
+        <AllUgcWall ownerId={user.id} onClose={() => setWallOpen(false)} />
       )}
     </>
   );

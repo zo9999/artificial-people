@@ -67,6 +67,14 @@ export type UgcVideo = {
   created_at: string;
 };
 
+export async function listAllUgc(ownerId: string, limit = 16): Promise<UgcVideo[]> {
+  const r = await fetch(
+    `${BASE}/api/people/_/ugc/all?owner_id=${encodeURIComponent(ownerId)}&limit=${limit}`,
+    { cache: "no-store" },
+  );
+  return handle<UgcVideo[]>(r);
+}
+
 export async function listUgc(ownerId: string, personId: string): Promise<UgcVideo[]> {
   const r = await fetch(
     `${BASE}/api/people/${encodeURIComponent(personId)}/ugc?owner_id=${encodeURIComponent(ownerId)}`,

@@ -246,6 +246,96 @@ button { font: inherit; cursor: pointer; }
   scroll-snap-align: start;
 }
 
+.wall {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: #f4a85a;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px;
+  gap: 12px;
+}
+.wall-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wall-cloud {
+  position: absolute;
+  background: #0a0a0a;
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: 0.55;
+  animation: drift 60s linear infinite;
+}
+.cloud-a { width: 360px; height: 140px; top: 8%;  left: -400px; animation-duration: 55s; }
+.cloud-b { width: 520px; height: 200px; top: 28%; left: -600px; animation-duration: 75s; animation-delay: -12s; opacity: 0.4; }
+.cloud-c { width: 300px; height: 110px; top: 55%; left: -350px; animation-duration: 65s; animation-delay: -25s; }
+.cloud-d { width: 480px; height: 180px; top: 72%; left: -500px; animation-duration: 80s; animation-delay: -40s; opacity: 0.5; }
+.cloud-e { width: 240px; height: 90px;  top: 86%; left: -260px; animation-duration: 50s; animation-delay: -18s; opacity: 0.6; }
+@keyframes drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(100vw + 700px)); }
+}
+
+.wall-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #1a0e02;
+}
+.wall-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: rgba(255,255,255,0.65);
+  padding: 6px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+.wall-grid {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 10px;
+  min-height: 0;
+}
+.wall-cell {
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,0,0,0.5);
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.wall-cell video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.wall-empty {
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.25);
+}
+@media (max-width: 900px) {
+  .wall-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(6, 1fr); }
+}
+@media (max-width: 600px) {
+  .wall-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(8, 1fr); }
+}
+
 .ugc-fullscreen {
   position: fixed;
   inset: 0;

@@ -405,6 +405,25 @@ def create_ugc(person_id):
     return jsonify(row), 202
 
 
+@bp.get("/_/ugc/all")
+def list_all_ugc():
+    owner_id, err = _require_owner_id(request.args.get("owner_id"))
+    if err:
+        return err
+    limit = int(request.args.get("limit") or 16)
+    res = (
+        supabase()
+        .table("ugc_videos")
+        .select("id, owner_id, person_id, prompt, video_url, status, created_at")
+        .eq("owner_id", owner_id)
+        .eq("status", "ready")
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return jsonify(res.data or [])
+
+
 @bp.get("/<person_id>/ugc")
 def list_ugc(person_id):
     owner_id, err = _require_owner_id(request.args.get("owner_id"))
