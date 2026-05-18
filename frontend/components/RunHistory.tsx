@@ -9,7 +9,13 @@ function VideoSlot({ url, label }: { url: string | null; label: string }) {
         <span aria-hidden>🎥</span> {label}
       </div>
       {url ? (
-        <video src={url} controls preload="metadata" />
+        <video
+          src={url}
+          autoPlay
+          playsInline
+          controls
+          preload="auto"
+        />
       ) : (
         <div className="run-video-placeholder">video pending…</div>
       )}
