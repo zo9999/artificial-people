@@ -36,14 +36,21 @@ def reply(person: dict, recent_messages: list[dict], utterance: str) -> str:
 
     msgs = [{"role": "system", "content": _persona(person)}]
     for m in (recent_messages or [])[-8:]:
-        role = (m.get("role") or "").lower()
-        if role in ("agent", "assistant"):
+        if isinstance(m, str):
+            # AgentPhone sometimes sends transcript as plain strings; treat as caller
+            if m.strip():
+                msgs.append({"role": "user", "content": m.strip()})
+            continue
+        if not isinstance(m, dict):
+            continue
+        role = (m.get("role") or m.get("speaker") or m.get("from") or "").lower()
+        if role in ("agent", "assistant", "bot", "ai"):
             mapped = "assistant"
-        elif role in ("user", "caller", "human"):
+        elif role in ("user", "caller", "human", "customer"):
             mapped = "user"
         else:
-            continue
-        content = m.get("content") or m.get("text") or m.get("transcript") or ""
+            mapped = "user"
+        content = m.get("content") or m.get("text") or m.get("transcript") or m.get("message") or ""
         if content:
             msgs.append({"role": mapped, "content": content})
     msgs.append({"role": "user", "content": utterance})
