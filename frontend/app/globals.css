@@ -283,13 +283,54 @@ button { font: inherit; cursor: pointer; }
 .sms-meta { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; }
 
 .live-frame-wrap { display: flex; flex-direction: column; gap: 8px; }
-.live-meta { display: flex; align-items: center; gap: 10px; }
+.live-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .live-frame {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  flex: 1;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: #000;
+  min-height: 320px;
+}
+.live-frame-placeholder {
+  width: 100%;
+  flex: 1;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-height: 320px;
+}
+
+.active-run {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+.active-run-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.active-run-right {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  min-height: 0;
+}
+.active-run-right .run-video video,
+.active-run-right .run-video-placeholder {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 720px) {
+  .active-run { grid-template-columns: 1fr; }
 }
 
 .pill {

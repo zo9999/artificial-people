@@ -47,24 +47,27 @@ def _upload(mp4_bytes: bytes, owner_id: str, run_id: str, kind: str) -> str:
     return url
 
 
-def _persona_prefix(person: dict) -> str:
-    full_name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
+def _smoothie_scene(full_name: str, line: str) -> str:
     return (
-        f"{full_name} looking directly at the camera in a casual indoor setting, "
-        f"natural lighting, talking head, lip sync, friendly conversational tone. "
-        f"They say:"
+        "Scene: a sunny kitchen counter packed with many colorful smoothies in clear "
+        "glass cups — strawberry pink, mango orange, green spinach, blueberry purple — "
+        "arranged in the foreground in sharp focus, garnished with fruit and straws. "
+        f"{full_name} stands in the soft-focus background behind the smoothies, not "
+        "the main subject, casually looking toward the camera and speaking warmly with "
+        "clear lip sync. Cinematic shallow depth of field, natural daylight, vlog feel. "
+        f"They say: \"{line}\""
     )
 
 
 def generate_intro(person: dict, run_id: str, sms_body: str) -> str:
-    line = "Getting you that smoothie now!!"
-    prompt = f"{_persona_prefix(person)} \"{line}\""
+    full_name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
+    prompt = _smoothie_scene(full_name, "Getting you that smoothie now!!")
     mp4 = _generate(prompt, person.get("face_url") or "", duration=5)
     return _upload(mp4, person["owner_id"], run_id, "intro")
 
 
 def generate_outro(person: dict, run_id: str, result_text: str) -> str:
-    line = "Your smoothie should be coming soon"
-    prompt = f"{_persona_prefix(person)} \"{line}\""
+    full_name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
+    prompt = _smoothie_scene(full_name, "Your smoothie should be coming soon")
     mp4 = _generate(prompt, person.get("face_url") or "", duration=5)
     return _upload(mp4, person["owner_id"], run_id, "outro")

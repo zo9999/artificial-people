@@ -65,7 +65,8 @@ export default function PersonDetailPage() {
     };
   }, [user, id]);
 
-  const activeRun = runs.find((r) => r.status === "running") || null;
+  const mostRecentRun = runs[0] || null;
+  const previousRuns = runs.slice(1);
 
   async function handleRegenerate() {
     if (!user || !id) return;
@@ -187,8 +188,8 @@ export default function PersonDetailPage() {
           </div>
 
           {user && <SmsThread ownerId={user.id} personId={person.id} />}
-          <RunLive run={activeRun} />
-          <RunHistory runs={runs} />
+          <RunLive run={mostRecentRun} />
+          <RunHistory runs={previousRuns} />
           {user && <Memories ownerId={user.id} personId={person.id} />}
         </div>
       </div>
