@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { listUgc, createUgc, UgcVideo } from "@/lib/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { listUgc, createUgc, uploadUgc, UgcVideo } from "@/lib/api";
 
 function PromptModal({
   onClose,
@@ -99,6 +99,9 @@ export default function UgcReels({
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -128,6 +131,23 @@ export default function UgcReels({
     }
   }
 
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setError(null);
+    try {
+      for (const f of Array.from(files)) {
+        if (!f.type.startsWith("video/")) continue;
+        await uploadUgc(ownerId, personId, f, f.name);
+      }
+      await refresh();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const latest = items[0] || null;
 
   return (
@@ -146,6 +166,31 @@ export default function UgcReels({
         </div>
       </div>
       {error && <div className="error">{error}</div>}
+
+      <div
+        className={`ugc-dropzone${dragOver ? " drag-over" : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {uploading ? "Uploading…" : "📁 Drop a video here, or click to upload"}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/*"
+          multiple
+          style={{ display: "none" }}
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+      </div>
 
       {latest ? (
         <div className="ugc-latest">

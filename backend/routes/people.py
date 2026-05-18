@@ -302,6 +302,53 @@ def add_memory(person_id):
     return jsonify(added), 201
 
 
+@bp.post("/<person_id>/ugc/upload")
+def upload_ugc(person_id):
+    owner_id = request.form.get("owner_id") or request.args.get("owner_id")
+    if not owner_id or not isinstance(owner_id, str):
+        return jsonify({"error": "owner_id is required"}), 400
+    if not _person_owned(owner_id, person_id):
+        return jsonify({"error": "not found"}), 404
+
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"error": "file is required"}), 400
+    label = (request.form.get("prompt") or f.filename or "Uploaded reel").strip()
+
+    import uuid as _uuid
+    from config import SUPABASE_VIDEOS_BUCKET
+    ext = (f.filename or "").rsplit(".", 1)[-1].lower() if f.filename and "." in f.filename else "mp4"
+    if ext not in ("mp4", "mov", "webm", "m4v"):
+        ext = "mp4"
+    path = f"ugc/{owner_id}/{_uuid.uuid4()}.{ext}"
+    data = f.read()
+    sb = supabase()
+    sb.storage.from_(SUPABASE_VIDEOS_BUCKET).upload(
+        path=path,
+        file=data,
+        file_options={
+            "content-type": f.mimetype or "video/mp4",
+            "upsert": "false",
+        },
+    )
+    public_url = sb.storage.from_(SUPABASE_VIDEOS_BUCKET).get_public_url(path)
+
+    insert = (
+        sb.table("ugc_videos")
+        .insert(
+            {
+                "owner_id": owner_id,
+                "person_id": person_id,
+                "prompt": label,
+                "video_url": public_url,
+                "status": "ready",
+            }
+        )
+        .execute()
+    )
+    return jsonify((insert.data or [None])[0]), 201
+
+
 @bp.post("/<person_id>/ugc")
 def create_ugc(person_id):
     body = request.get_json(silent=True) or {}

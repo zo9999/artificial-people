@@ -91,6 +91,23 @@ export async function createUgc(
   return handle<UgcVideo>(r);
 }
 
+export async function uploadUgc(
+  ownerId: string,
+  personId: string,
+  file: File,
+  label?: string,
+): Promise<UgcVideo> {
+  const fd = new FormData();
+  fd.append("owner_id", ownerId);
+  fd.append("file", file);
+  if (label) fd.append("prompt", label);
+  const r = await fetch(
+    `${BASE}/api/people/${encodeURIComponent(personId)}/ugc/upload`,
+    { method: "POST", body: fd },
+  );
+  return handle<UgcVideo>(r);
+}
+
 export type AgentRun = {
   id: string;
   owner_id: string;
