@@ -4,8 +4,10 @@ from flask import Blueprint, jsonify, request
 import requests
 
 from config import PUBLIC_WEBHOOK_BASE, AGENTPHONE_WEBHOOK_SECRET
+import threading
+
 from services.supabase_client import supabase
-from services import agentmail, agentphone, sponge, face, memory, persona, voice_agent
+from services import agentmail, agentphone, sponge, face, memory, persona, voice_agent, video
 
 log = logging.getLogger("people")
 
@@ -298,6 +300,80 @@ def add_memory(person_id):
     except Exception:
         log.exception("refresh voice agent after memory failed")
     return jsonify(added), 201
+
+
+@bp.post("/<person_id>/ugc")
+def create_ugc(person_id):
+    body = request.get_json(silent=True) or {}
+    owner_id, err = _require_owner_id(body.get("owner_id"))
+    if err:
+        return err
+    prompt = (body.get("prompt") or "").strip()
+    if not prompt:
+        return jsonify({"error": "prompt is required"}), 400
+
+    sb = supabase()
+    res = (
+        sb.table("people")
+        .select(PUBLIC_FIELDS)
+        .eq("owner_id", owner_id)
+        .eq("id", person_id)
+        .limit(1)
+        .execute()
+    )
+    rows = res.data or []
+    if not rows:
+        return jsonify({"error": "not found"}), 404
+    person = rows[0]
+
+    insert = (
+        sb.table("ugc_videos")
+        .insert(
+            {
+                "owner_id": owner_id,
+                "person_id": person_id,
+                "prompt": prompt,
+                "status": "generating",
+            }
+        )
+        .execute()
+    )
+    row = (insert.data or [None])[0]
+    if not row:
+        return jsonify({"error": "failed to insert"}), 500
+
+    def _bg(ugc_id: str, p: dict, pr: str) -> None:
+        try:
+            url = video.generate_ugc(p, ugc_id, pr)
+            supabase().table("ugc_videos").update(
+                {"video_url": url, "status": "ready"}
+            ).eq("id", ugc_id).execute()
+        except Exception:
+            log.exception("ugc generation failed")
+            supabase().table("ugc_videos").update({"status": "failed"}).eq(
+                "id", ugc_id
+            ).execute()
+
+    threading.Thread(target=_bg, args=(row["id"], person, prompt), daemon=True).start()
+    return jsonify(row), 202
+
+
+@bp.get("/<person_id>/ugc")
+def list_ugc(person_id):
+    owner_id, err = _require_owner_id(request.args.get("owner_id"))
+    if err:
+        return err
+    res = (
+        supabase()
+        .table("ugc_videos")
+        .select("id, owner_id, person_id, prompt, video_url, status, created_at")
+        .eq("owner_id", owner_id)
+        .eq("person_id", person_id)
+        .order("created_at", desc=True)
+        .limit(100)
+        .execute()
+    )
+    return jsonify(res.data or [])
 
 
 @bp.post("/<person_id>/repair-agentphone")

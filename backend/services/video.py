@@ -71,3 +71,40 @@ def generate_outro(person: dict, run_id: str, result_text: str) -> str:
     prompt = _smoothie_scene(full_name, "Your smoothie should be coming soon")
     mp4 = _generate(prompt, person.get("face_url") or "", duration=5)
     return _upload(mp4, person["owner_id"], run_id, "outro")
+
+
+def generate_ugc(person: dict, ugc_id: str, user_prompt: str) -> str:
+    """Generate a vertical UGC-style reel with the AP as the subject."""
+    full_name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
+    full_prompt = (
+        "Vertical 9:16 UGC-style smartphone selfie video, casual handheld feel, "
+        f"natural lighting, vlog energy. Subject is {full_name}, the same person as "
+        "in the source image, speaking directly to the camera with clear lip sync. "
+        f"Scene / action: {user_prompt.strip()}"
+    )
+    log.info("fal ugc model=%s prompt_len=%d", FAL_VIDEO_MODEL, len(full_prompt))
+    result = fal_client.subscribe(
+        FAL_VIDEO_MODEL,
+        arguments={
+            "prompt": full_prompt,
+            "image_url": person.get("face_url") or "",
+            "duration": "5",
+            "resolution": "720p",
+            "aspect_ratio": "9:16",
+        },
+    )
+    video_obj = result.get("video") or {}
+    src_url = video_obj.get("url") or result.get("video_url")
+    if not src_url:
+        raise RuntimeError(f"fal returned no video url: {result}")
+    mp4 = requests.get(src_url, timeout=120).content
+    path = f"ugc/{person['owner_id']}/{ugc_id}-{uuid.uuid4()}.mp4"
+    sb = supabase()
+    sb.storage.from_(SUPABASE_VIDEOS_BUCKET).upload(
+        path=path,
+        file=mp4,
+        file_options={"content-type": "video/mp4", "upsert": "false"},
+    )
+    url = sb.storage.from_(SUPABASE_VIDEOS_BUCKET).get_public_url(path)
+    log.info("uploaded ugc to %s", url)
+    return url

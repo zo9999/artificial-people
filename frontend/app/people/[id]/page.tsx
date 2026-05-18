@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { getPerson, regenerateFace, repairAgentphone, Person } from "@/lib/api";
 import EditPersonModal from "@/components/EditPersonModal";
 import Memories from "@/components/Memories";
+import UgcReels from "@/components/UgcReels";
 import SmsThread from "@/components/SmsThread";
 import RunLive from "@/components/RunLive";
 import RunHistory from "@/components/RunHistory";
@@ -199,6 +200,7 @@ export default function PersonDetailPage() {
             </p>
           </div>
 
+          {user && <UgcReels ownerId={user.id} personId={person.id} />}
           {user && <SmsThread ownerId={user.id} personId={person.id} />}
           <RunLive run={mostRecentRun} />
           <RunHistory runs={previousRuns} />

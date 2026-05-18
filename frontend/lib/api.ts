@@ -57,6 +57,40 @@ export type Memory = {
   created_at?: string | null;
 };
 
+export type UgcVideo = {
+  id: string;
+  owner_id: string;
+  person_id: string;
+  prompt: string;
+  video_url: string | null;
+  status: "generating" | "ready" | "failed";
+  created_at: string;
+};
+
+export async function listUgc(ownerId: string, personId: string): Promise<UgcVideo[]> {
+  const r = await fetch(
+    `${BASE}/api/people/${encodeURIComponent(personId)}/ugc?owner_id=${encodeURIComponent(ownerId)}`,
+    { cache: "no-store" },
+  );
+  return handle<UgcVideo[]>(r);
+}
+
+export async function createUgc(
+  ownerId: string,
+  personId: string,
+  prompt: string,
+): Promise<UgcVideo> {
+  const r = await fetch(
+    `${BASE}/api/people/${encodeURIComponent(personId)}/ugc`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ owner_id: ownerId, prompt }),
+    },
+  );
+  return handle<UgcVideo>(r);
+}
+
 export type AgentRun = {
   id: string;
   owner_id: string;
