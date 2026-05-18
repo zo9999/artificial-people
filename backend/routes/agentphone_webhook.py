@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request
 from config import AGENTPHONE_WEBHOOK_SECRET
 from services.supabase_client import supabase
 from services.runner import start_run
+from services import intent
 
 log = logging.getLogger("webhook")
 bp = Blueprint("agentphone_webhook", __name__, url_prefix="/api/agentphone")
@@ -82,8 +83,10 @@ def inbound():
     if person is None:
         log.warning("no AP matches agent_id=%s to=%s", agent_id, to_number)
         return jsonify({"ok": True, "unknown": True}), 200
-    rows = [person]
 
-    person = rows[0]
+    if not intent.is_actionable(text):
+        log.info("sms classified IGNORE: %r", text[:120])
+        return jsonify({"ok": True, "ignored": True, "reason": "not actionable"}), 200
+
     run = start_run(person, text, reply_to=from_number)
     return jsonify({"ok": True, "run": run}), 202

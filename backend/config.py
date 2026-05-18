@@ -19,6 +19,8 @@ SUPABASE_VIDEOS_BUCKET = os.environ.get("SUPABASE_VIDEOS_BUCKET", "videos")
 
 SUPERMEMORY_API_KEY = os.environ["SUPERMEMORY_API_KEY"]
 
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
 BROWSER_USE_API_KEY = os.environ.get("BROWSER_USE_API_KEY", "")
 BROWSER_USE_BASE_URL = os.environ.get("BROWSER_USE_BASE_URL", "https://api.browser-use.com/api/v2").rstrip("/")
 AGENTPHONE_WEBHOOK_SECRET = os.environ.get("AGENTPHONE_WEBHOOK_SECRET", "")
