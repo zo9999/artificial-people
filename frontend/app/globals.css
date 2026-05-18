@@ -234,31 +234,17 @@ button { font: inherit; cursor: pointer; }
   justify-content: space-between;
   margin-bottom: 12px;
 }
-.ugc-latest {
+.ugc-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 260px;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  scroll-snap-type: x mandatory;
 }
-.ugc-latest video,
-.ugc-latest .ugc-placeholder {
-  width: 100%;
-  aspect-ratio: 9 / 16;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #000;
-  object-fit: cover;
+.ugc-row .ugc-card {
+  flex: 0 0 200px;
+  scroll-snap-align: start;
 }
-.ugc-latest .ugc-placeholder {
-  background: #fafafa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  font-size: 0.85rem;
-  border-style: dashed;
-}
-.ugc-latest-meta { font-size: 0.85rem; color: var(--muted); font-style: italic; }
 
 .ugc-fullscreen {
   position: fixed;

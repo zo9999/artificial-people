@@ -148,8 +148,6 @@ export default function UgcReels({
     }
   }
 
-  const latest = items[0] || null;
-
   return (
     <div className="section">
       <div className="ugc-header">
@@ -192,26 +190,29 @@ export default function UgcReels({
         />
       </div>
 
-      {latest ? (
-        <div className="ugc-latest">
-          {latest.video_url ? (
-            <video
-              src={latest.video_url}
-              controls
-              playsInline
-              autoPlay
-              preload="auto"
-            />
-          ) : (
-            <div className="ugc-placeholder">
-              {latest.status === "failed" ? "failed" : "generating…"}
-            </div>
-          )}
-          <div className="ugc-latest-meta">“{latest.prompt}”</div>
+      {items.length === 0 ? (
+        <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+          No reels yet. Hit <strong>Generate UGC</strong> or drop a video above.
         </div>
       ) : (
-        <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-          No reels yet. Hit <strong>Generate UGC</strong> to make one.
+        <div className="ugc-row">
+          {items.map((v) => (
+            <div key={v.id} className="ugc-card">
+              {v.video_url ? (
+                <video
+                  src={v.video_url}
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <div className="ugc-placeholder">
+                  {v.status === "failed" ? "failed" : "generating…"}
+                </div>
+              )}
+              <div className="ugc-card-meta">“{v.prompt}”</div>
+            </div>
+          ))}
         </div>
       )}
 
