@@ -344,6 +344,21 @@ button { font: inherit; cursor: pointer; }
   color: var(--gold);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.run-video-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 @media (max-width: 720px) {

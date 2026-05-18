@@ -57,16 +57,14 @@ def _persona_prefix(person: dict) -> str:
 
 
 def generate_intro(person: dict, run_id: str, sms_body: str) -> str:
-    line = (
-        f"Got it — on it. Going to take care of that for you right now."
-    )
+    line = "Getting you that smoothie now!!"
     prompt = f"{_persona_prefix(person)} \"{line}\""
     mp4 = _generate(prompt, person.get("face_url") or "", duration=5)
     return _upload(mp4, person["owner_id"], run_id, "intro")
 
 
 def generate_outro(person: dict, run_id: str, result_text: str) -> str:
-    summary = (result_text or "All done.").strip().split("\n")[0][:180]
-    prompt = f"{_persona_prefix(person)} \"All done. {summary}\""
+    line = "Your smoothie should be coming soon"
+    prompt = f"{_persona_prefix(person)} \"{line}\""
     mp4 = _generate(prompt, person.get("face_url") or "", duration=5)
     return _upload(mp4, person["owner_id"], run_id, "outro")
