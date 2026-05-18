@@ -304,12 +304,15 @@ button { font: inherit; cursor: pointer; }
   z-index: 2;
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   gap: 10px;
+  align-content: center;
+  justify-content: center;
+  overflow-y: auto;
   min-height: 0;
 }
 .wall-cell {
+  aspect-ratio: 9 / 16;
   border-radius: 12px;
   overflow: hidden;
   background: rgba(0,0,0,0.4);
@@ -329,11 +332,14 @@ button { font: inherit; cursor: pointer; }
   height: 100%;
   background: rgba(0,0,0,0.25);
 }
-@media (max-width: 900px) {
-  .wall-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(6, 1fr); }
+@media (max-width: 1100px) {
+  .wall-grid { grid-template-columns: repeat(4, 1fr); }
 }
-@media (max-width: 600px) {
-  .wall-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(8, 1fr); }
+@media (max-width: 700px) {
+  .wall-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 500px) {
+  .wall-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .ugc-fullscreen {
