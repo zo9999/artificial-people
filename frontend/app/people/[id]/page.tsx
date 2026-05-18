@@ -162,15 +162,7 @@ export default function PersonDetailPage() {
           </div>
 
           <div className="section">
-            <h3>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://www.google.com/s2/favicons?domain=paysponge.com&sz=64"
-                alt=""
-                className="brand-logo"
-              />
-              Bank / Wallet (Sponge)
-            </h3>
+            <h3>Bank / Wallet (Sponge)</h3>
             <dl className="kv">
               <dt>Agent ID</dt>
               <dd>{person.sponge_agent_id || "—"}</dd>
@@ -182,25 +174,9 @@ export default function PersonDetailPage() {
           <div className="section">
             <h3>Services</h3>
             <dl className="kv">
-              <dt>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://www.google.com/s2/favicons?domain=agentmail.to&sz=64"
-                  alt=""
-                  className="brand-logo"
-                />
-                AgentMail
-              </dt>
+              <dt>AgentMail</dt>
               <dd>{person.email || "—"}</dd>
-              <dt>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://www.google.com/s2/favicons?domain=agentphone.ai&sz=64"
-                  alt=""
-                  className="brand-logo"
-                />
-                AgentPhone
-              </dt>
+              <dt>AgentPhone</dt>
               <dd>{person.phone || "—"}</dd>
             </dl>
           </div>
