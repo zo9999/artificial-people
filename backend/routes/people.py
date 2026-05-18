@@ -360,6 +360,8 @@ def repair_agentphone(person_id):
     else:
         # Existing agent — push the latest voice prompt (with runs + memories) and hosted mode
         try:
+            # Force voiceMode webhook + refresh persona
+            agentphone.update_agent(agent_id, voiceMode="webhook")
             voice_agent.refresh(full_row)
         except Exception:
             log.exception("refresh voice agent failed (continuing)")

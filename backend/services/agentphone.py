@@ -14,14 +14,16 @@ _HEADERS = {
 
 def create_agent(name: str, system_prompt: str = "") -> dict:
     url = f"{AGENTPHONE_BASE_URL}/v1/agents"
+    # voiceMode=webhook so we own the call mid-utterance (lets us trigger
+    # browser-use during the call). systemPrompt is ignored in webhook mode
+    # but we keep it on the agent for forward-compat / dashboard visibility.
     payload = {
         "name": name,
-        "voiceMode": "hosted",
-        "messagingTools": True,
+        "voiceMode": "webhook",
     }
     if system_prompt:
         payload["systemPrompt"] = system_prompt
-    log.info("POST %s name=%s voiceMode=hosted", url, name)
+    log.info("POST %s name=%s voiceMode=webhook", url, name)
     r = requests.post(url, headers=_HEADERS, json=payload, timeout=30)
     log.info("← %s %s", r.status_code, r.text[:300])
     r.raise_for_status()

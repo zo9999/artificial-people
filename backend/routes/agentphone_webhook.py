@@ -2,10 +2,12 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
+import threading
+
 from config import AGENTPHONE_WEBHOOK_SECRET
 from services.supabase_client import supabase
 from services.runner import start_run
-from services import intent
+from services import intent, voice_chat
 
 log = logging.getLogger("webhook")
 bp = Blueprint("agentphone_webhook", __name__, url_prefix="/api/agentphone")
@@ -47,7 +49,7 @@ def inbound():
     )
     to_number = _pluck(body_root, "to", "toNumber", "to_number", "recipient")
     from_number = _pluck(body_root, "from", "fromNumber", "from_number", "sender")
-    text = _pluck(body_root, "text", "body", "content", "message")
+    text = _pluck(body_root, "text", "body", "content", "message", "transcript", "utterance")
 
     if not text:
         log.warning("webhook missing text; ignoring")
@@ -84,6 +86,30 @@ def inbound():
         log.warning("no AP matches agent_id=%s to=%s", agent_id, to_number)
         return jsonify({"ok": True, "unknown": True}), 200
 
+    channel = (payload.get("channel") or body_root.get("channel") or "").lower()
+
+    # ----- VOICE during call: reply synchronously, fire run in background -----
+    if channel == "voice":
+        recent = (
+            body_root.get("recentMessages")
+            or body_root.get("history")
+            or body_root.get("transcript")
+            or []
+        )
+        if isinstance(recent, dict):
+            recent = []
+        actionable = intent.is_actionable(text)
+        if actionable:
+            log.info("voice utterance ACT: %r", text[:120])
+            threading.Thread(
+                target=start_run, args=(person, text, from_number), daemon=True
+            ).start()
+            return jsonify({"text": voice_chat.ack_action(text)}), 200
+        reply = voice_chat.reply(person, recent, text)
+        log.info("voice utterance reply: %r", reply[:120])
+        return jsonify({"text": reply}), 200
+
+    # ----- SMS: classify, ack via outbound SMS handled by runner -----
     if not intent.is_actionable(text):
         log.info("sms classified IGNORE: %r", text[:120])
         return jsonify({"ok": True, "ignored": True, "reason": "not actionable"}), 200

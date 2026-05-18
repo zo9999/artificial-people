@@ -40,9 +40,8 @@ def refresh(person: dict) -> None:
     try:
         agentphone.update_agent(
             agent_id,
-            voiceMode="hosted",
+            voiceMode="webhook",
             systemPrompt=prompt,
-            messagingTools=True,
         )
         log.info("refreshed voice agent %s", agent_id)
     except Exception:
