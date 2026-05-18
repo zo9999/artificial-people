@@ -306,6 +306,43 @@ button { font: inherit; cursor: pointer; }
   min-height: 320px;
 }
 
+.active-run-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #fff;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.active-run-fullscreen .active-run {
+  flex: 1;
+  min-height: 0;
+}
+.active-run-fullscreen .live-frame,
+.active-run-fullscreen .live-frame-placeholder {
+  height: 100%;
+  min-height: 0;
+}
+.active-run-fullscreen .active-run-right .run-video {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.active-run-fullscreen .active-run-right .run-video video,
+.active-run-fullscreen .active-run-right .run-video-placeholder {
+  flex: 1;
+  height: auto;
+  aspect-ratio: auto;
+}
+.active-run-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .active-run {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
