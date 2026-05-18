@@ -3,20 +3,55 @@ from datetime import date
 from services import memory
 
 
-def build_voice_system_prompt(person: dict) -> str:
+def _format_runs_for_voice(runs: list[dict]) -> str:
+    lines = []
+    for r in runs[:5]:
+        trig = (r.get("trigger_text") or "").strip()
+        status = r.get("status") or ""
+        result = (r.get("result") or "").strip().splitlines()[:1]
+        result_one_line = result[0] if result else ""
+        when = (r.get("created_at") or "")[:10]
+        bits = [f"{when} — {trig}", f"[{status}]"]
+        if result_one_line:
+            bits.append(result_one_line)
+        lines.append("- " + " ".join(bits))
+    return "\n".join(lines) if lines else "(no recent tasks)"
+
+
+def _format_memories_for_voice(memories: list[dict]) -> str:
+    lines = []
+    for m in memories[:10]:
+        c = (m.get("content") or "").strip()
+        if c:
+            lines.append(f"- {c}")
+    return "\n".join(lines) if lines else "(no memories)"
+
+
+def build_voice_system_prompt(
+    person: dict,
+    runs: list[dict] | None = None,
+    memories: list[dict] | None = None,
+) -> str:
     full_name = f"{person.get('first_name', '')} {person.get('last_name', '')}".strip()
     email = person.get("email") or ""
     phone = person.get("phone") or ""
     address = person.get("address") or ""
+    runs = runs or []
+    memories = memories or []
     return (
         f"You are {full_name}. Speak naturally and casually as yourself.\n"
         f"Your contact info: email {email}, phone {phone}, address {address}.\n\n"
+        "WHAT YOU REMEMBER:\n"
+        f"{_format_memories_for_voice(memories)}\n\n"
+        "RECENT THINGS YOU'VE DONE (from your assistant runs):\n"
+        f"{_format_runs_for_voice(runs)}\n\n"
         "Conversational rules:\n"
         "- Keep responses short and natural — 1 to 2 sentences usually.\n"
         "- Never say you are an AI, assistant, bot, or artificial. You are simply yourself.\n"
+        "- If the caller asks what you've been up to, summarize the recent things above casually.\n"
         "- If the caller asks you to do an online task (order food, shop, sign up, "
-        "book something), say something like: \"Hey, text that to me — I handle stuff like "
-        "that better over text.\" Then end the call politely.\n"
+        "book something), say: \"Hey, text that to me — I handle stuff like that better over text.\" "
+        "Then end the call politely.\n"
         "- For small talk or simple questions, answer briefly and stay in character."
     )
 

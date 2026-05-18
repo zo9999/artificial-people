@@ -4,7 +4,7 @@ import time
 
 from config import DEFAULT_SPEND_CAP_CENTS
 from services.supabase_client import supabase
-from services import agentphone, browser_use, sponge, persona
+from services import agentphone, browser_use, sponge, persona, voice_agent
 
 log = logging.getLogger("runner")
 
@@ -78,6 +78,11 @@ def _watch(run_id: str, person: dict, session_id: str, task_id: str | None) -> N
             )
         except Exception:
             log.exception("failed to send confirmation SMS")
+
+    try:
+        voice_agent.refresh_by_id(person["owner_id"], person["id"])
+    except Exception:
+        log.exception("failed to refresh voice agent after run")
 
     try:
         browser_use.stop_session(session_id)

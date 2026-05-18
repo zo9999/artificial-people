@@ -5,7 +5,7 @@ import requests
 
 from config import PUBLIC_WEBHOOK_BASE, AGENTPHONE_WEBHOOK_SECRET
 from services.supabase_client import supabase
-from services import agentmail, agentphone, sponge, face, memory, persona
+from services import agentmail, agentphone, sponge, face, memory, persona, voice_agent
 
 log = logging.getLogger("people")
 
@@ -251,6 +251,10 @@ def update_person(person_id):
         return jsonify({"error": "not found"}), 404
     updated = rows[0]
     updated.pop("sponge_api_key", None)
+    try:
+        voice_agent.refresh_by_id(owner_id, person_id)
+    except Exception:
+        log.exception("refresh voice agent after edit failed")
     return jsonify(updated)
 
 
@@ -284,6 +288,10 @@ def add_memory(person_id):
         added = memory.add_memory(person_id, owner_id, content)
     except Exception as e:
         return _service_error("supermemory", e)
+    try:
+        voice_agent.refresh_by_id(owner_id, person_id)
+    except Exception:
+        log.exception("refresh voice agent after memory failed")
     return jsonify(added), 201
 
 
@@ -345,16 +353,11 @@ def repair_agentphone(person_id):
 
         sb.table("people").update({"agentphone_agent_id": agent_id}).eq("id", person_id).execute()
     else:
-        # Existing agent — push the latest voice prompt + hosted mode in case it drifted
+        # Existing agent — push the latest voice prompt (with runs + memories) and hosted mode
         try:
-            agentphone.update_agent(
-                agent_id,
-                voiceMode="hosted",
-                systemPrompt=voice_prompt,
-                messagingTools=True,
-            )
+            voice_agent.refresh(full_row)
         except Exception:
-            log.exception("update_agent failed (continuing)")
+            log.exception("refresh voice agent failed (continuing)")
 
     webhook_url = _build_webhook_url(agent_id)
     webhook_set = False
