@@ -49,7 +49,20 @@ def inbound():
     )
     to_number = _pluck(body_root, "to", "toNumber", "to_number", "recipient")
     from_number = _pluck(body_root, "from", "fromNumber", "from_number", "sender")
-    text = _pluck(body_root, "text", "body", "content", "message", "transcript", "utterance")
+    raw_text = _pluck(body_root, "text", "body", "content", "message", "transcript", "utterance")
+    if isinstance(raw_text, list):
+        # AgentPhone occasionally sends transcript as [{role,content}, ...] or [str, ...]
+        parts = []
+        for item in raw_text:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(
+                    str(item.get("content") or item.get("text") or item.get("transcript") or "")
+                )
+        text = " ".join(p for p in parts if p).strip()
+    else:
+        text = str(raw_text) if raw_text is not None else ""
 
     if not text:
         log.warning("webhook missing text; ignoring")
