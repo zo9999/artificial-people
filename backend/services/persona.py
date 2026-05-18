@@ -89,9 +89,10 @@ def build_prompt(person: dict, sms_body: str, card: dict, spend_cap_dollars: int
         f"{creds}\n"
     ) if creds else ""
 
+    first_name_slug = (person.get("first_name") or "").strip().lower()
     inbox_url = (
-        f"{PUBLIC_WEBHOOK_BASE}/api/inbox/{person.get('id')}/latest"
-        if PUBLIC_WEBHOOK_BASE and person.get("id") else ""
+        f"{PUBLIC_WEBHOOK_BASE}/api/inbox/{first_name_slug}"
+        if PUBLIC_WEBHOOK_BASE and first_name_slug else ""
     )
     inbox_block = (
         "\nSMS INBOX (for 2FA / verification codes texted to your phone):\n"

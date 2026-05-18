@@ -47,14 +47,19 @@ def list_messages(person_id):
     return jsonify(msgs)
 
 
-@bp.get("/api/inbox/<person_id>/latest")
-def latest_inbox(person_id):
-    """Public, no-auth endpoint the browser agent fetches to read 2FA codes."""
+@bp.get("/api/inbox/<name>")
+def latest_inbox(name):
+    """Public, no-auth endpoint the browser agent fetches to read 2FA codes.
+
+    `name` is matched (case-insensitive) against the AP's first_name. Most recent
+    match wins if there are duplicates.
+    """
     res = (
         supabase()
         .table("people")
         .select("phone, agentphone_number_id")
-        .eq("id", person_id)
+        .ilike("first_name", name)
+        .order("created_at", desc=True)
         .limit(1)
         .execute()
     )
