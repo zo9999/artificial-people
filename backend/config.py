@@ -16,7 +16,7 @@ SPONGE_BASE_URL = os.environ.get("SPONGE_BASE_URL", "https://api.paysponge.com")
 FAL_KEY = os.environ.get("FAL_KEY", "")
 FAL_IMAGE_MODEL = os.environ.get("FAL_IMAGE_MODEL", "fal-ai/flux/schnell")
 FAL_VIDEO_MODEL = os.environ.get(
-    "FAL_VIDEO_MODEL", "fal-ai/bytedance/seedance-2.0/image-to-video"
+    "FAL_VIDEO_MODEL", "bytedance/seedance-2.0/image-to-video"
 )
 SUPABASE_VIDEOS_BUCKET = os.environ.get("SUPABASE_VIDEOS_BUCKET", "videos")
 
